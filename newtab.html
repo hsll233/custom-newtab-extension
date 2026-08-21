@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Google Fonts: Plus Jakarta Sans (Google Sans Style) + Noto Sans SC + Roboto -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+  <script src="js/focus-helper.js"></script>
+  <title>New Tab</title>
+</head>
+<body>
+  <!-- Wallpaper Container -->
+  <div id="wallpaperOverlay" class="wallpaper-overlay"></div>
+  <div id="wallpaper" class="wallpaper-bg"></div>
+
+  <!-- Top-Right Hover Zone with Auto-Hiding Settings Button -->
+  <div class="top-right-zone" id="topRightZone">
+    <button class="icon-gear-btn" id="pageSettingsBtn" title="页面个性化与设置 (Alt+S)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="4" y1="21" x2="4" y2="14"></line>
+        <line x1="4" y1="10" x2="4" y2="3"></line>
+        <line x1="12" y1="21" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12" y2="3"></line>
+        <line x1="20" y1="21" x2="20" y2="16"></line>
+        <line x1="20" y1="12" x2="20" y2="3"></line>
+        <line x1="1" y1="14" x2="7" y2="14"></line>
+        <line x1="9" y1="8" x2="15" y2="8"></line>
+        <line x1="17" y1="16" x2="23" y2="16"></line>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Main Center Area (Positioned to match screenshot) -->
+  <main class="main-container">
+    <div class="search-dock-container" id="searchDockContainer">
+    <!-- Copilot AI Search Box (Single-Layer Glassmorphic Capsule with Integrated History Expand) -->
+    <div class="search-capsule" id="searchCapsule">
+      <!-- Input Row -->
+      <div class="search-input-row">
+        <input 
+          type="text" 
+          id="searchInput" 
+          class="search-input" 
+          placeholder="Message Gemini..." 
+          autocomplete="off" 
+          spellcheck="false" 
+          autofocus
+        />
+      </div>
+
+      <!-- Capsule Controls Row (Unified in single glass layer) -->
+      <div class="search-bottom-row">
+        <div class="search-tools-left">
+          <button class="tool-btn image-ai-btn" id="imageAiBtn" title="图片询问 AI (Google Lens 识图问答)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+
+          <span class="tool-divider"></span>
+
+          <div class="mode-dropdown-wrapper" id="modeDropdownWrapper">
+            <button class="mode-select-btn" id="modeSelectBtn" title="Switch Search Engine">
+              <span class="mode-name" id="currentEngineLabel">Google</span>
+              <svg class="chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="search-right-actions">
+          <button class="action-circle-btn submit-btn" id="submitSearchBtn" title="Search / Visit (Enter)">
+            <svg class="submit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Integrated Search History & Google Live Suggestions (Expands seamlessly inside capsule) -->
+      <div class="search-suggest-popover" id="searchSuggestPopover">
+        <div class="suggest-divider"></div>
+        <div class="suggest-list" id="suggestList">
+          <!-- Populated dynamically by JS -->
+        </div>
+      </div>
+
+      <!-- @ Mention Suggestions Popover -->
+      <div class="mention-popover" id="mentionPopover">
+        <div class="mention-header">Search Engine Shortcuts</div>
+        <div class="mention-list" id="mentionList">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Shortcuts Dock Bar -->
+    <nav class="shortcuts-dock" id="shortcutsDock">
+      <div class="shortcuts-grid" id="shortcutsGrid">
+        <!-- Rendered by JS -->
+      </div>
+    </nav>
+    </div>
+
+    <!-- Mode Selector Popover (Independent Top-Level Glass Layer) -->
+    <div class="mode-menu" id="modeMenu">
+      <div class="menu-item active" data-engine="google">Google</div>
+      <div class="menu-item" data-engine="chatgpt">ChatGPT</div>
+      <div class="menu-item" data-engine="ai">AI Mode</div>
+      <div class="menu-item" data-engine="bing">Bing</div>
+      <div class="menu-item" data-engine="bilibili">Bilibili</div>
+    </div>
+  </main>
+
+
+  <!-- Settings Modal (全中文设置面板) -->
+  <div class="modal-backdrop" id="settingsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>页面个性化与设置</h2>
+        <button class="modal-close-btn" id="closeSettingsModal" title="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Search Box Placeholder Customization -->
+        <div class="setting-section">
+          <label class="section-title">搜索框占位提示文本</label>
+          <div class="form-row">
+            <label>自定义提示文本：</label>
+            <input type="text" id="searchPlaceholderInput" placeholder="例如: Message Gemini... 或 搜索任何内容..." />
+          </div>
+          <p class="section-desc">自定义主搜索框在未输入内容时显示的默认灰色提示文字。</p>
+        </div>
+
+        <!-- Wallpaper Settings (Only Local Wallpaper) -->
+        <div class="setting-section">
+          <label class="section-title">壁纸与外观视觉</label>
+          <div class="form-row" id="uploadImageRow">
+            <label>自定义本地壁纸：</label>
+            <div class="file-upload-wrapper">
+              <input type="file" id="localWallpaperFile" accept="image/*" class="file-input-hidden" />
+              <label for="localWallpaperFile" class="file-upload-btn">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                <span>浏览本地图片...</span>
+              </label>
+              <span id="fileNameLabel" class="file-name-label">未选择文件</span>
+              <button type="button" class="subtle-btn" id="resetWallpaperBtn" style="padding: 5px 10px; font-size: 11.5px;" title="清空壁纸并使用纯净深色底色">清空壁纸</button>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>背景暗色遮罩 (明暗度)：</label>
+            <div class="slider-group">
+              <input type="range" id="bgDimRange" min="0" max="80" value="15" />
+              <span id="bgDimVal" class="slider-val-badge">15%</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>背景毛玻璃虚化 (Blur)：</label>
+            <div class="slider-group">
+              <input type="range" id="bgBlurRange" min="0" max="25" value="0" />
+              <span id="bgBlurVal" class="slider-val-badge">0px</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Default Engine -->
+        <div class="setting-section">
+          <label class="section-title">默认搜索引擎 / 模式</label>
+          <div class="form-row">
+            <label>新标签页默认模式：</label>
+            <select id="defaultEngineSelect">
+              <option value="google" selected>Google</option>
+              <option value="chatgpt">ChatGPT</option>
+              <option value="ai">AI Mode (Google AI)</option>
+              <option value="bing">Bing</option>
+              <option value="bilibili">Bilibili</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Shortcuts Management -->
+        <div class="setting-section">
+          <div class="section-header-flex">
+            <label class="section-title">底部快捷导航栏管理</label>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="subtle-btn" id="refreshAllIconsBtn" title="从网络下载高清图标并永久缓存在本地（后续刷新无需联网）">🔄 联网更新并缓存图标</button>
+              <button class="subtle-btn" id="resetShortcutsBtn">恢复默认图标</button>
+            </div>
+          </div>
+          <p class="section-desc">图标将自动下载并转化为本地 Base64 永久存储，新开标签页 0 延迟秒开、无需重复联网请求。</p>
+          <div class="shortcuts-manage-list" id="shortcutsManageList">
+            <!-- Rendered by JS -->
+          </div>
+          <button class="primary-btn-outline" id="addNewShortcutModalBtn">+ 添加新快捷方式</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="primary-btn" id="saveSettingsBtn">保存并应用设置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Shortcut Modal -->
+  <div class="modal-backdrop" id="shortcutEditModal">
+    <div class="modal-card modal-card-sm">
+      <div class="modal-header">
+        <h3 id="shortcutModalTitle">添加快捷方式</h3>
+        <button class="modal-close-btn" id="closeShortcutEditModal" title="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <label>网站名称：</label>
+          <input type="text" id="shortcutTitleInput" placeholder="例如: GitHub" />
+        </div>
+        <div class="form-row">
+          <label>网站链接 (URL)：</label>
+          <input type="text" id="shortcutUrlInput" placeholder="https://github.com" />
+        </div>
+        <div class="form-row">
+          <label>图标获取方式：</label>
+          <select id="shortcutIconTypeSelect">
+            <option value="favicon">自动抓取网站高清 Favicon</option>
+            <option value="custom_url">自定义图标图片链接 / Emoji</option>
+          </select>
+        </div>
+        <div class="form-row" id="shortcutCustomIconRow" style="display: none;">
+          <label>图标链接或 Emoji：</label>
+          <input type="text" id="shortcutCustomIconInput" placeholder="图片 URL 或 Emoji 表情 (如 🚀)" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="subtle-btn" id="cancelShortcutEditBtn">取消</button>
+        <button class="primary-btn" id="saveShortcutBtn">保存快捷方式</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/newtab.js"></script>
+</body>
+</html>

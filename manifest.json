@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "New Tab",
+  "version": "1.0.0",
+  "description": "A sleek, customizable glassmorphism AI new tab.",
+  "permissions": [
+    "storage",
+    "unlimitedStorage"
+  ],
+  "host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "action": {
+    "default_title": "New Tab"
+  }
+}
