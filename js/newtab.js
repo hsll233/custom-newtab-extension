@@ -76,6 +76,8 @@
     customWallpaperUrl: localStorage.getItem('copilot_custom_wallpaper_url') || '',
     bgDim: localStorage.getItem('copilot_bg_dim') !== null ? parseInt(localStorage.getItem('copilot_bg_dim'), 10) : 15,
     bgBlur: localStorage.getItem('copilot_bg_blur') !== null ? parseInt(localStorage.getItem('copilot_bg_blur'), 10) : 0,
+    glassDarkness: localStorage.getItem('copilot_glass_darkness') !== null ? parseInt(localStorage.getItem('copilot_glass_darkness'), 10) : 0,
+    glassContrast: localStorage.getItem('copilot_glass_contrast') !== null ? parseInt(localStorage.getItem('copilot_glass_contrast'), 10) : 0,
     currentEngine: savedEngine,
     shortcuts: initialShortcuts
   };
@@ -83,10 +85,9 @@
   // DOM Elements
   const searchInput = document.getElementById('searchInput');
   const modeSelectBtn = document.getElementById('modeSelectBtn');
+  const modeDropdownWrapper = document.getElementById('modeDropdownWrapper');
   const modeMenu = document.getElementById('modeMenu');
   const currentEngineLabel = document.getElementById('currentEngineLabel');
-  const mentionPopover = document.getElementById('mentionPopover');
-  const mentionList = document.getElementById('mentionList');
   const shortcutsGrid = document.getElementById('shortcutsGrid');
 
   // Modals
@@ -171,6 +172,7 @@
     } catch (e) {}
 
     renderWallpaper();
+    renderGlassDarkness();
     renderPlaceholder();
     renderEngineUI();
     renderShortcuts();
@@ -198,6 +200,45 @@
         searchInput.focus();
       }
     }, 50);
+  }
+
+  // --------------------------------------------------------------------------
+  // Glass Darkness & High-Contrast Sliders (毛玻璃深色深度与高对比深色独立双滑块)
+  // --------------------------------------------------------------------------
+  function renderGlassDarkness() {
+    const darkness = state.glassDarkness !== undefined ? state.glassDarkness : 0;
+    const contrast = state.glassContrast !== undefined ? state.glassContrast : 0;
+
+    const darkRatio = Math.min(Math.max(darkness, 0), 100) / 100;
+    const contrastRatio = Math.min(Math.max(contrast, 0), 100) / 100;
+
+    // Base RGB with darkness
+    const baseR = 38 - (38 - 14) * darkRatio;
+    const baseG = 34 - (34 - 10) * darkRatio;
+    const baseB = 50 - (50 - 20) * darkRatio;
+
+    const finalR = Math.round(baseR - (baseR - 10) * (contrastRatio * 0.6));
+    const finalG = Math.round(baseG - (baseG - 8) * (contrastRatio * 0.6));
+    const finalB = Math.round(baseB - (baseB - 14) * (contrastRatio * 0.6));
+
+    // Opacity boost
+    const baseAlpha = 0.72 + (0.85 - 0.72) * darkRatio;
+    const finalAlpha = Math.min(0.97, baseAlpha + (0.97 - baseAlpha) * contrastRatio).toFixed(2);
+
+    // Badges
+    const baseBadgeR = 30 - (30 - 12) * darkRatio;
+    const baseBadgeG = 26 - (26 - 10) * darkRatio;
+    const baseBadgeB = 46 - (46 - 18) * darkRatio;
+
+    const finalBadgeR = Math.round(baseBadgeR - (baseBadgeR - 10) * (contrastRatio * 0.6));
+    const finalBadgeG = Math.round(baseBadgeG - (baseBadgeG - 8) * (contrastRatio * 0.6));
+    const finalBadgeB = Math.round(baseBadgeB - (baseBadgeB - 14) * (contrastRatio * 0.6));
+
+    const baseBadgeAlpha = 0.70 + (0.84 - 0.70) * darkRatio;
+    const finalBadgeAlpha = Math.min(0.96, baseBadgeAlpha + (0.96 - baseBadgeAlpha) * contrastRatio).toFixed(2);
+
+    document.documentElement.style.setProperty('--glass-bg', `rgba(${finalR}, ${finalG}, ${finalB}, ${finalAlpha})`);
+    document.documentElement.style.setProperty('--glass-badge-bg', `rgba(${finalBadgeR}, ${finalBadgeG}, ${finalBadgeB}, ${finalBadgeAlpha})`);
   }
 
   // --------------------------------------------------------------------------
@@ -390,7 +431,6 @@
       const link = document.createElement('a');
       link.className = 'shortcut-item';
       link.href = item.url;
-      link.title = `${item.title} (${item.url})`;
       link.setAttribute('data-index', index);
 
       const badge = document.createElement('div');
@@ -496,9 +536,7 @@
     selectedSuggestIndex = -1;
     
     // 关闭其他可能打开的菜单
-    const modeDropdownWrapper = document.getElementById('modeDropdownWrapper') || document.querySelector('.mode-dropdown-wrapper');
-    if (modeDropdownWrapper) modeDropdownWrapper.classList.remove('open', 'hovering');
-    if (mentionPopover) mentionPopover.style.display = 'none';
+    closeModeMenu();
     
     let html = '';
     history.forEach((term, idx) => {
@@ -512,7 +550,7 @@
             <span class="suggest-item-text">${escapeHtml(term)}</span>
           </div>
           <div class="suggest-item-actions">
-            <button class="suggest-action-btn delete-btn" data-action="delete-history" data-idx="${idx}" title="删除记录">
+            <button class="suggest-action-btn delete-btn" data-action="delete-history" data-idx="${idx}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -537,6 +575,73 @@
     selectedSuggestIndex = -1;
   }
 
+  // --------------------------------------------------------------------------
+  // 引擎下拉菜单控制与键盘导航 (Mode Menu & Keyboard Control)
+  // --------------------------------------------------------------------------
+  let highlightedEngineIndex = -1;
+
+  function positionModeMenu() {
+    if (!modeSelectBtn || !modeMenu) return;
+    const rect = modeSelectBtn.getBoundingClientRect();
+    modeMenu.style.top = `${rect.bottom + 20}px`;
+    modeMenu.style.left = `${rect.left}px`;
+    modeMenu.style.width = `${rect.width + 5}px`;
+    modeMenu.style.minWidth = `${rect.width + 5}px`;
+  }
+
+  function openModeMenu(defaultToNext = false) {
+    if (!modeMenu) return;
+    hideSuggestPopover();
+    positionModeMenu();
+    modeMenu.classList.add('open');
+    if (modeDropdownWrapper) {
+      modeDropdownWrapper.classList.add('open');
+    }
+
+    const menuItems = Array.from(modeMenu.querySelectorAll('.menu-item'));
+    const currentIdx = menuItems.findIndex(it => it.getAttribute('data-engine') === state.currentEngine);
+    if (defaultToNext) {
+      highlightedEngineIndex = currentIdx >= 0 ? (currentIdx + 1) % menuItems.length : 0;
+    } else {
+      highlightedEngineIndex = currentIdx >= 0 ? currentIdx : 0;
+    }
+    updateModeMenuHighlight();
+  }
+
+  function closeModeMenu() {
+    if (modeMenu) {
+      modeMenu.classList.remove('open');
+    }
+    if (modeDropdownWrapper) {
+      modeDropdownWrapper.classList.remove('open', 'hovering');
+    }
+    highlightedEngineIndex = -1;
+  }
+
+  function updateModeMenuHighlight() {
+    if (!modeMenu) return;
+    const menuItems = modeMenu.querySelectorAll('.menu-item');
+    menuItems.forEach((it, idx) => {
+      if (idx === highlightedEngineIndex) {
+        it.classList.add('active');
+        it.scrollIntoView({ block: 'nearest' });
+      } else {
+        it.classList.remove('active');
+      }
+    });
+  }
+
+  function confirmModeMenuSelection() {
+    if (!modeMenu || !modeMenu.classList.contains('open')) return;
+    const menuItems = Array.from(modeMenu.querySelectorAll('.menu-item'));
+    if (highlightedEngineIndex >= 0 && menuItems[highlightedEngineIndex]) {
+      const engine = menuItems[highlightedEngineIndex].getAttribute('data-engine');
+      setEngine(engine);
+    }
+    closeModeMenu();
+    if (searchInput) searchInput.focus();
+  }
+
   async function fetchGoogleSuggestions(query) {
     if (suggestAbortController) {
       suggestAbortController.abort();
@@ -557,17 +662,9 @@
   }
 
   function handleSearchInputChange() {
-    const modeDropdownWrapper = document.getElementById('modeDropdownWrapper') || document.querySelector('.mode-dropdown-wrapper');
-    if (modeDropdownWrapper) modeDropdownWrapper.classList.remove('open', 'hovering');
+    closeModeMenu();
 
     const val = searchInput.value.trim();
-    if (val.startsWith('@')) {
-      hideSuggestPopover();
-      checkMention();
-      return;
-    }
-    if (mentionPopover) mentionPopover.style.display = 'none';
-
     if (!val) {
       showSearchHistory();
       return;
@@ -604,49 +701,6 @@
   }
 
   // --------------------------------------------------------------------------
-  // Mention Popover (@) Logic
-  // --------------------------------------------------------------------------
-  function checkMention() {
-    const val = searchInput.value;
-    if (val.startsWith('@')) {
-      const query = val.slice(1).toLowerCase();
-      const keys = Object.keys(ENGINES).filter(k => k.includes(query) || ENGINES[k].label.toLowerCase().includes(query));
-      
-      if (keys.length > 0) {
-        renderMentionList(keys);
-        mentionPopover.style.display = 'block';
-        hideSuggestPopover();
-      } else {
-        mentionPopover.style.display = 'none';
-      }
-    } else {
-      if (mentionPopover) mentionPopover.style.display = 'none';
-    }
-  }
-
-  function renderMentionList(keys) {
-    mentionList.innerHTML = '';
-    keys.forEach((k, idx) => {
-      const engine = ENGINES[k];
-      const item = document.createElement('div');
-      item.className = `mention-item ${idx === 0 ? 'selected' : ''}`;
-      item.innerHTML = `
-        <div class="menu-item-text">
-          <div class="item-title">@${k} - ${engine.label}</div>
-          <div class="item-desc">${engine.url}</div>
-        </div>
-      `;
-      item.addEventListener('click', () => {
-        setEngine(k);
-        searchInput.value = '';
-        mentionPopover.style.display = 'none';
-        searchInput.focus();
-      });
-      mentionList.appendChild(item);
-    });
-  }
-
-  // --------------------------------------------------------------------------
   // 立即访问 / 搜索按钮 (Visit / Submit Button)
   // --------------------------------------------------------------------------
   function setupSubmitButton() {
@@ -672,6 +726,10 @@
       document.getElementById('bgDimVal').textContent = `${state.bgDim !== undefined ? state.bgDim : 15}%`;
       document.getElementById('bgBlurRange').value = state.bgBlur !== undefined ? state.bgBlur : 0;
       document.getElementById('bgBlurVal').textContent = `${state.bgBlur !== undefined ? state.bgBlur : 0}px`;
+      document.getElementById('glassDarkRange').value = state.glassDarkness !== undefined ? state.glassDarkness : 0;
+      document.getElementById('glassDarkVal').textContent = `${state.glassDarkness !== undefined ? state.glassDarkness : 0}%`;
+      document.getElementById('glassContrastRange').value = state.glassContrast !== undefined ? state.glassContrast : 0;
+      document.getElementById('glassContrastVal').textContent = `${state.glassContrast !== undefined ? state.glassContrast : 0}%`;
       document.getElementById('defaultEngineSelect').value = state.currentEngine || 'google';
 
       const fileNameLabel = document.getElementById('fileNameLabel');
@@ -705,8 +763,8 @@
             </div>
           </div>
           <div class="manage-btn-group">
-            <button class="action-sm-btn move-btn" data-action="move-up" data-idx="${index}" ${isFirst ? 'disabled style="opacity:0.25;cursor:not-allowed;pointer-events:none;"' : ''} title="向上移动">上移</button>
-            <button class="action-sm-btn move-btn" data-action="move-down" data-idx="${index}" ${isLast ? 'disabled style="opacity:0.25;cursor:not-allowed;pointer-events:none;"' : ''} title="向下移动">下移</button>
+            <button class="action-sm-btn move-btn" data-action="move-up" data-idx="${index}" ${isFirst ? 'disabled style="opacity:0.25;cursor:not-allowed;pointer-events:none;"' : ''}>上移</button>
+            <button class="action-sm-btn move-btn" data-action="move-down" data-idx="${index}" ${isLast ? 'disabled style="opacity:0.25;cursor:not-allowed;pointer-events:none;"' : ''}>下移</button>
             <button class="action-sm-btn" data-action="edit" data-idx="${index}">编辑</button>
             <button class="action-sm-btn delete" data-action="delete" data-idx="${index}">删除</button>
           </div>
@@ -728,6 +786,8 @@
       }
       state.bgDim = parseInt(document.getElementById('bgDimRange').value, 10);
       state.bgBlur = parseInt(document.getElementById('bgBlurRange').value, 10);
+      state.glassDarkness = parseInt(document.getElementById('glassDarkRange').value, 10);
+      state.glassContrast = parseInt(document.getElementById('glassContrastRange').value, 10);
       state.currentEngine = document.getElementById('defaultEngineSelect').value;
 
       if (state.customWallpaperUrl) {
@@ -739,6 +799,8 @@
         localStorage.setItem('copilot_wallpaper_source', state.wallpaperSource || 'upload');
         localStorage.setItem('copilot_bg_dim', state.bgDim.toString());
         localStorage.setItem('copilot_bg_blur', state.bgBlur.toString());
+        localStorage.setItem('copilot_glass_darkness', state.glassDarkness.toString());
+        localStorage.setItem('copilot_glass_contrast', state.glassContrast.toString());
         localStorage.setItem('copilot_default_engine', state.currentEngine);
       } catch (storageErr) {
         console.warn('localStorage quota warning:', storageErr);
@@ -748,6 +810,7 @@
 
       renderPlaceholder();
       renderWallpaper();
+      renderGlassDarkness();
       renderEngineUI();
       renderShortcuts();
     } catch (err) {
@@ -877,6 +940,56 @@
     }
 
     searchInput.addEventListener('keydown', (e) => {
+      // 1. 当引擎下拉菜单已展开时，支持 Tab / Shift+Tab / ↑ / ↓ 快速轮播选择，Enter 确认
+      if (modeMenu && modeMenu.classList.contains('open')) {
+        const menuItems = modeMenu.querySelectorAll('.menu-item');
+        if (menuItems.length > 0) {
+          if (e.key === 'Tab') {
+            e.preventDefault();
+            if (e.shiftKey) {
+              highlightedEngineIndex = (highlightedEngineIndex - 1 + menuItems.length) % menuItems.length;
+            } else {
+              highlightedEngineIndex = (highlightedEngineIndex + 1) % menuItems.length;
+            }
+            updateModeMenuHighlight();
+            return;
+          } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            highlightedEngineIndex = (highlightedEngineIndex + 1) % menuItems.length;
+            updateModeMenuHighlight();
+            return;
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            highlightedEngineIndex = (highlightedEngineIndex - 1 + menuItems.length) % menuItems.length;
+            updateModeMenuHighlight();
+            return;
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            confirmModeMenuSelection();
+            if (searchInput.value.trim()) {
+              executeSearch();
+            }
+            return;
+          } else if (e.key === ' ' || e.code === 'Space') {
+            e.preventDefault();
+            confirmModeMenuSelection();
+            return;
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            closeModeMenu();
+            return;
+          }
+        }
+      }
+
+      // 2. 搜索框内按 Tab 键：一键唤起引擎下拉菜单并自动高亮下一项
+      if (e.key === 'Tab' && !e.shiftKey && !e.altKey && !e.ctrlKey) {
+        e.preventDefault();
+        openModeMenu(true);
+        return;
+      }
+
+      // 3. 搜索历史 / 联想词列表键盘导航
       const items = suggestList ? suggestList.querySelectorAll('.suggest-item') : [];
       if (searchSuggestPopover && searchSuggestPopover.classList.contains('open') && items.length > 0) {
         if (e.key === 'ArrowDown') {
@@ -956,7 +1069,6 @@
           return;
         }
 
-
         // 点击搜索建议/历史项，直接执行搜索
         const item = e.target.closest('.suggest-item');
         if (item) {
@@ -967,28 +1079,14 @@
       });
     }
 
-    function positionModeMenu() {
-      if (!modeSelectBtn || !modeMenu) return;
-      const rect = modeSelectBtn.getBoundingClientRect();
-      modeMenu.style.top = `${rect.bottom + 20}px`;
-      modeMenu.style.left = `${rect.left}px`;
-      modeMenu.style.width = `${rect.width + 5}px`;
-      modeMenu.style.minWidth = `${rect.width + 5}px`;
-    }
-
     // 引擎下拉框点击切换支持 (显式点击打开/收起，移除悬停误触)
-    const modeDropdownWrapper = document.getElementById('modeDropdownWrapper') || document.querySelector('.mode-dropdown-wrapper');
     if (modeSelectBtn) {
       modeSelectBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        hideSuggestPopover();
-        positionModeMenu();
-        const isOpen = modeMenu && modeMenu.classList.contains('open');
-        if (modeDropdownWrapper) {
-          modeDropdownWrapper.classList.toggle('open', !isOpen);
-        }
-        if (modeMenu) {
-          modeMenu.classList.toggle('open', !isOpen);
+        if (modeMenu && modeMenu.classList.contains('open')) {
+          closeModeMenu();
+        } else {
+          openModeMenu(false);
         }
       });
     }
@@ -1000,10 +1098,8 @@
           e.stopPropagation();
           const engine = item.getAttribute('data-engine');
           setEngine(engine);
-          modeMenu.classList.remove('open');
-          if (modeDropdownWrapper) {
-            modeDropdownWrapper.classList.remove('open');
-          }
+          closeModeMenu();
+          if (searchInput) searchInput.focus();
         }
       });
     }
@@ -1062,11 +1158,8 @@
 
     // 全局点击隐藏浮动菜单与搜索建议
     document.addEventListener('click', (e) => {
-      if (modeDropdownWrapper) {
-        modeDropdownWrapper.classList.remove('open', 'hovering');
-      }
-      if (modeMenu) {
-        modeMenu.classList.remove('open');
+      if (!e.target.closest('#modeSelectBtn') && !e.target.closest('#modeMenu')) {
+        closeModeMenu();
       }
       if (searchSuggestPopover && !e.target.closest('.search-capsule')) {
         hideSuggestPopover();
@@ -1119,6 +1212,26 @@
       document.getElementById('bgBlurVal').textContent = `${e.target.value}px`;
       document.documentElement.style.setProperty('--bg-blur', `${e.target.value}px`);
     });
+
+    const glassDarkRange = document.getElementById('glassDarkRange');
+    if (glassDarkRange) {
+      glassDarkRange.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        document.getElementById('glassDarkVal').textContent = `${val}%`;
+        state.glassDarkness = val;
+        renderGlassDarkness();
+      });
+    }
+
+    const glassContrastRange = document.getElementById('glassContrastRange');
+    if (glassContrastRange) {
+      glassContrastRange.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        document.getElementById('glassContrastVal').textContent = `${val}%`;
+        state.glassContrast = val;
+        renderGlassDarkness();
+      });
+    }
 
     // 本地上传壁纸 (保持 100% 原图超清无损画质，永久保存在 IndexedDB)
     const localWallpaperFileInput = document.getElementById('localWallpaperFile');
@@ -1193,13 +1306,6 @@
 
     // 访问 / 搜索直达按钮
     setupSubmitButton();
-
-    // 聚焦就绪后自动净化地址栏参数，去除 ?focus=1
-    if (window.location.search.includes('focus=1')) {
-      try {
-        window.history.replaceState(null, '', window.location.pathname);
-      } catch (e) {}
-    }
   }
 
   if (document.readyState === 'loading') {

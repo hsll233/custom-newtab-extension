@@ -11,10 +11,14 @@
     "https://*/*",
     "http://*/*"
   ],
+  "icons": {
+    "128": "assets/icons/favicon.svg"
+  },
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },
   "action": {
-    "default_title": "New Tab"
+    "default_title": "New Tab",
+    "default_icon": "assets/icons/favicon.svg"
   }
 }

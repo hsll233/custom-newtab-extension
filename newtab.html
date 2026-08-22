@@ -19,7 +19,7 @@
 
   <!-- Top-Right Hover Zone with Auto-Hiding Settings Button -->
   <div class="top-right-zone" id="topRightZone">
-    <button class="icon-gear-btn" id="pageSettingsBtn" title="页面个性化与设置 (Alt+S)">
+    <button class="icon-gear-btn" id="pageSettingsBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <line x1="4" y1="21" x2="4" y2="14"></line>
         <line x1="4" y1="10" x2="4" y2="3"></line>
@@ -55,7 +55,7 @@
       <!-- Capsule Controls Row (Unified in single glass layer) -->
       <div class="search-bottom-row">
         <div class="search-tools-left">
-          <button class="tool-btn image-ai-btn" id="imageAiBtn" title="图片询问 AI (Google Lens 识图问答)">
+          <button class="tool-btn image-ai-btn" id="imageAiBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -65,7 +65,7 @@
           <span class="tool-divider"></span>
 
           <div class="mode-dropdown-wrapper" id="modeDropdownWrapper">
-            <button class="mode-select-btn" id="modeSelectBtn" title="Switch Search Engine">
+            <button class="mode-select-btn" id="modeSelectBtn">
               <span class="mode-name" id="currentEngineLabel">Google</span>
               <svg class="chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="6 9 12 15 18 9"></polyline>
@@ -75,7 +75,7 @@
         </div>
 
         <div class="search-right-actions">
-          <button class="action-circle-btn submit-btn" id="submitSearchBtn" title="Search / Visit (Enter)">
+          <button class="action-circle-btn submit-btn" id="submitSearchBtn">
             <svg class="submit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="5" y1="12" x2="19" y2="12"></line>
               <polyline points="12 5 19 12 12 19"></polyline>
@@ -89,14 +89,6 @@
         <div class="suggest-divider"></div>
         <div class="suggest-list" id="suggestList">
           <!-- Populated dynamically by JS -->
-        </div>
-      </div>
-
-      <!-- @ Mention Suggestions Popover -->
-      <div class="mention-popover" id="mentionPopover">
-        <div class="mention-header">Search Engine Shortcuts</div>
-        <div class="mention-list" id="mentionList">
-          <!-- Populated by JS -->
         </div>
       </div>
     </div>
@@ -125,7 +117,7 @@
     <div class="modal-card">
       <div class="modal-header">
         <h2>页面个性化与设置</h2>
-        <button class="modal-close-btn" id="closeSettingsModal" title="关闭">&times;</button>
+        <button class="modal-close-btn" id="closeSettingsModal">&times;</button>
       </div>
       <div class="modal-body">
         <!-- Search Box Placeholder Customization -->
@@ -150,7 +142,7 @@
                 <span>浏览本地图片...</span>
               </label>
               <span id="fileNameLabel" class="file-name-label">未选择文件</span>
-              <button type="button" class="subtle-btn" id="resetWallpaperBtn" style="padding: 5px 10px; font-size: 11.5px;" title="清空壁纸并使用纯净深色底色">清空壁纸</button>
+              <button type="button" class="subtle-btn" id="resetWallpaperBtn" style="padding: 5px 10px; font-size: 11.5px;">清空壁纸</button>
             </div>
           </div>
           <div class="form-row">
@@ -165,6 +157,20 @@
             <div class="slider-group">
               <input type="range" id="bgBlurRange" min="0" max="25" value="0" />
               <span id="bgBlurVal" class="slider-val-badge">0px</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>毛玻璃深色深度 (暗色调)：</label>
+            <div class="slider-group">
+              <input type="range" id="glassDarkRange" min="0" max="100" value="0" />
+              <span id="glassDarkVal" class="slider-val-badge">0%</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>高对比深色背景 (防泛白)：</label>
+            <div class="slider-group">
+              <input type="range" id="glassContrastRange" min="0" max="100" value="0" />
+              <span id="glassContrastVal" class="slider-val-badge">0%</span>
             </div>
           </div>
         </div>
@@ -189,7 +195,7 @@
           <div class="section-header-flex">
             <label class="section-title">底部快捷导航栏管理</label>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button class="subtle-btn" id="refreshAllIconsBtn" title="从网络下载高清图标并永久缓存在本地（后续刷新无需联网）">🔄 联网更新并缓存图标</button>
+              <button class="subtle-btn" id="refreshAllIconsBtn">🔄 联网更新并缓存图标</button>
               <button class="subtle-btn" id="resetShortcutsBtn">恢复默认图标</button>
             </div>
           </div>
@@ -211,7 +217,7 @@
     <div class="modal-card modal-card-sm">
       <div class="modal-header">
         <h3 id="shortcutModalTitle">添加快捷方式</h3>
-        <button class="modal-close-btn" id="closeShortcutEditModal" title="关闭">&times;</button>
+        <button class="modal-close-btn" id="closeShortcutEditModal">&times;</button>
       </div>
       <div class="modal-body">
         <div class="form-row">
