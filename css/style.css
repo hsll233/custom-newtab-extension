@@ -347,11 +347,8 @@ body {
   margin-top: 0;
   padding-bottom: 0;
   overflow: hidden;
-  overscroll-behavior: contain;
-  pointer-events: none;
-  transform: translateZ(0);
-  scrollbar-width: none; /* 默认隐藏滚动条，彻底杜绝展开高度过渡时的滚动条闪烁 */
-  -ms-overflow-style: none;
+  scrollbar-width: none !important; /* 彻底隐藏滚动条，保持毛玻璃胶囊纯净 */
+  -ms-overflow-style: none !important;
   transition:
     max-height 0.15s cubic-bezier(0.16, 1, 0.3, 1),
     opacity 0.13s cubic-bezier(0.16, 1, 0.3, 1),
@@ -367,25 +364,27 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   pointer-events: auto;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
-/* 仅在鼠标悬停在列表上时才显现优雅滚动条，展开动画期间完全隐形无闪烁 */
-.search-suggest-popover::-webkit-scrollbar {
-  width: 4px;
+/* 彻底隐藏 Webkit/Chromium 滚动条与上下箭头按钮 */
+.search-suggest-popover::-webkit-scrollbar,
+.search-suggest-popover.open::-webkit-scrollbar,
+.search-suggest-popover:hover::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
 }
-.search-suggest-popover::-webkit-scrollbar-track {
-  background: transparent;
-}
-.search-suggest-popover::-webkit-scrollbar-thumb {
-  background: transparent;
-  border-radius: 4px;
-  transition: background 0.15s ease;
-}
-.search-suggest-popover:hover::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
-}
-.search-suggest-popover:hover {
-  scrollbar-width: thin;
+
+.search-suggest-popover::-webkit-scrollbar-thumb,
+.search-suggest-popover::-webkit-scrollbar-track,
+.search-suggest-popover::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
 }
 
 /* 微透分割线：平滑淡入淡出 */
@@ -520,6 +519,8 @@ body {
   padding: 4px;
   max-height: 280px;
   overflow-y: auto;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
   background: var(--glass-bg); 
   backdrop-filter: blur(28px) saturate(180%);
   -webkit-backdrop-filter: blur(28px) saturate(180%);
@@ -533,6 +534,12 @@ body {
   pointer-events: none;
   transform: translateY(4px) scale(0.96);
   transition: opacity 0.16s cubic-bezier(0.16, 1, 0.3, 1), transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.16s;
+}
+
+.mode-menu::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .mode-menu.open {
