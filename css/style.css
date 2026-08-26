@@ -11,7 +11,7 @@
   --text-main: #ffffff;
   --text-muted: rgba(255, 255, 255, 0.7);
   --text-dim: rgba(255, 255, 255, 0.46);
-  --font-sans: 'Google Sans', 'Google Sans Flex', 'Product Sans', 'Noto Sans SC', 'Roboto', 'Plus Jakarta Sans', sans-serif;
+  --font-sans: 'Google Sans', 'Google Sans Flex', 'Product Sans', 'Noto Sans SC', '思源黑体', 'Plus Jakarta Sans', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Microsoft YaHei', sans-serif;
 }
 
 * {
